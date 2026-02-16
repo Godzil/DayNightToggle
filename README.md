@@ -52,3 +52,10 @@ To publish the demo page to GitHub Pages:
 - Tailwind CSS
 - TypeScript
 - Vite / CRA (depending on setup)
+
+## Attributions
+
+This silly project was generated with the help of Gemini, and is licenced under the 3 clauses BSD. All I ask is
+that if you use it in your own project, please link back to this repo.
+
+The idea was largely inspired by this tweet: https://fxtwitter.com/uisavior/status/2021594465153028174
