@@ -1,20 +1,52 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Day/Night Toggle Switch
 
-# Run and deploy your AI Studio app
+A beautiful, animated, and scalable Day/Night toggle switch component built with **React**, **Tailwind CSS**, and **TypeScript**.
 
-This contains everything you need to run your app locally.
+![Demo Preview](https://via.placeholder.com/800x400?text=Day+Night+Toggle+Preview)
 
-View your app in AI Studio: https://ai.studio/apps/drive/1BZNrPgXupxA-QGoS1hhn-42qHnsUFB4R
+## Features
 
-## Run Locally
+- **Smooth Animations**: complex CSS transitions for the sun/moon eclipse effect, clouds, and stars.
+- **Procedural Generation**: "Night" mode stars are generated deterministically based on a `seed` prop, allowing for unique but stable constellations.
+- **Scalable**: Fully vector-based and scalable via a `scale` prop without losing quality or breaking layout.
+- **Accessible**: Includes proper ARIA attributes and keyboard support (`Enter`/`Space` to toggle).
+- **Responsive**: Built with Tailwind CSS.
 
-**Prerequisites:**  Node.js
+## Usage
 
+### Installation
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. Clone the repository.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Running Locally
+
+```bash
+npm start
+```
+
+### Component Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `isNight` | `boolean` | Required | Current state of the toggle. |
+| `onToggle` | `() => void` | Required | Callback function when clicked. |
+| `scale` | `number` | `1` | Scaling factor (e.g., `0.5`, `1.5`). |
+| `seed` | `number` | `0` | Seed for random star generation. |
+
+## Deployment
+
+To publish the demo page to GitHub Pages:
+
+1. The `pages/` folder contains a standalone `index.html`.
+2. Configure GitHub Pages to serve from the `/pages` folder or root depending on your repository structure.
+
+## Technologies
+
+- React 18+
+- Tailwind CSS
+- TypeScript
+- Vite / CRA (depending on setup)

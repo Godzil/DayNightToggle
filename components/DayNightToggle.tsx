@@ -1,99 +1,222 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 
-const DayNightToggle: React.FC = () => {
-  const [isNight, setIsNight] = useState(false);
+interface DayNightToggleProps {
+  isNight: boolean;
+  onToggle: () => void;
+  scale?: number;
+  seed?: number;
+}
 
-  const toggleTheme = () => {
-    setIsNight(!isNight);
+// Simple Linear Congruential Generator for deterministic randomness
+const getRandom = (seed: number) => {
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+};
+
+const DayNightToggle: React.FC<DayNightToggleProps> = ({ isNight, onToggle, scale = 1, seed = 0 }) => {
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onToggle();
+    }
   };
 
+  // Generate stars based on seed
+  const stars = useMemo(() => {
+    const random = getRandom(seed + 12345); // offset seed
+    const generatedStars = [];
+    const numStars = 4 + Math.floor(random() * 4); // 4 to 7 stars
+    
+    for (let i = 0; i < numStars; i++) {
+        // Position stars primarily on the left side (5% to 55%) so they are visible when switch is in night mode
+        // With the tighter width (w-72), we have less space, so we constrain left slightly more.
+        const top = 15 + random() * 60; // 15% to 75% vertical
+        const left = 8 + random() * 45; // 8% to 53% horizontal
+        const size = 10 + random() * 12; // 10px to 22px
+        const delay = random() * 3; // 0s to 3s delay
+        const duration = 2 + random() * 3; // 2s to 5s duration
+        const type = random() > 0.6 ? 'dot' : 'star'; // 40% dots, 60% stars
+        
+        generatedStars.push({ id: i, top, left, size, delay, duration, type });
+    }
+    return generatedStars;
+  }, [seed]);
+
+  // Base dimensions of the component in pixels
+  // Content: w-72 (288px) x h-32 (128px)
+  // Border: 4px
+  const contentWidth = 288;
+  const contentHeight = 128;
+  const borderWidth = 4;
+  
+  const totalWidth = contentWidth + (borderWidth * 2);
+  const totalHeight = contentHeight + (borderWidth * 2);
+
   return (
-    <div
-      className={`
-        relative w-80 h-32 rounded-full cursor-pointer overflow-hidden transition-colors duration-700 ease-in-out shadow-[inset_0_4px_12px_rgba(0,0,0,0.3),inset_0_-2px_6px_rgba(255,255,255,0.2)]
-        border-4 border-slate-50/10 box-content
-        ${isNight ? 'bg-[#1a1c29]' : 'bg-[#6EBFF7]'}
-      `}
-      onClick={toggleTheme}
-      role="button"
-      aria-pressed={isNight}
-      aria-label="Toggle Dark Mode"
+    <div 
+      style={{ width: totalWidth * scale, height: totalHeight * scale }}
+      className="relative flex-shrink-0"
     >
-      {/* --- Background Elements --- */}
-      
-      {/* Background Gradients/Rings (Subtle depth) */}
-      <div className={`absolute inset-0 transition-opacity duration-700 ${isNight ? 'opacity-100' : 'opacity-0'}`}>
-         {/* Night Gradients */}
-         <div className="absolute top-[-50%] left-[20%] w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
-         <div className="absolute bottom-[-20%] right-[10%] w-48 h-48 rounded-full bg-blue-500/10 blur-2xl"></div>
-      </div>
-      <div className={`absolute inset-0 transition-opacity duration-700 ${isNight ? 'opacity-0' : 'opacity-100'}`}>
-         {/* Day Gradients */}
-         <div className="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-white/20 blur-2xl"></div>
-         <div className="absolute bottom-[-50%] left-[10%] w-56 h-56 rounded-full bg-blue-300/30 blur-2xl"></div>
-      </div>
-
-      {/* Stars (Night Mode) */}
-      {/* Star 1 - Top Left */}
-      <div className={`absolute top-6 left-16 text-white transition-all duration-700 delay-100 ${isNight ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-0'}`}>
-         <StarIcon size={18} className="animate-twinkle" />
-      </div>
-      {/* Star 2 - Bottom Center */}
-      <div className={`absolute bottom-6 left-36 text-white transition-all duration-700 delay-200 ${isNight ? 'opacity-100 translate-y-0 scale-75' : 'opacity-0 translate-y-4 scale-0'}`}>
-         <StarIcon size={12} className="animate-twinkle-delay-1" />
-      </div>
-      {/* Star 3 - Top Center Right */}
-      <div className={`absolute top-8 right-40 text-white transition-all duration-700 delay-150 ${isNight ? 'opacity-100 translate-y-0 scale-90' : 'opacity-0 translate-y-4 scale-0'}`}>
-         <StarIcon size={16} className="animate-twinkle-delay-2" />
-      </div>
-       {/* Small Dot Stars */}
-      <div className={`absolute top-12 left-28 w-1 h-1 bg-white rounded-full transition-all duration-500 delay-300 ${isNight ? 'opacity-80 scale-100' : 'opacity-0 scale-0'}`}></div>
-      <div className={`absolute bottom-10 right-48 w-1.5 h-1.5 bg-white rounded-full transition-all duration-500 delay-200 ${isNight ? 'opacity-60 scale-100' : 'opacity-0 scale-0'}`}></div>
-      <div className={`absolute top-5 right-32 w-1 h-1 bg-white rounded-full transition-all duration-500 delay-300 ${isNight ? 'opacity-70 scale-100' : 'opacity-0 scale-0'}`}></div>
-
-
-      {/* Clouds (Day Mode) */}
-      {/* Moving these down and fading out when night comes */}
-      <div className={`absolute inset-0 transition-all duration-700 ease-in-out ${isNight ? 'translate-y-24 opacity-0' : 'translate-y-0 opacity-100'}`}>
-        {/* Cloud 1 */}
-        <div className="absolute -bottom-6 right-0 w-32 h-32 bg-white/95 rounded-full mix-blend-normal"></div>
-        <div className="absolute -bottom-4 right-16 w-24 h-24 bg-white/90 rounded-full shadow-sm"></div>
-        {/* Cloud 2 */}
-        <div className="absolute -bottom-8 right-32 w-28 h-28 bg-white/85 rounded-full"></div>
-        <div className="absolute -bottom-2 right-[-10px] w-20 h-20 bg-white/80 rounded-full"></div>
-        {/* Cloud 3 - Left side filler */}
-        <div className="absolute -bottom-10 left-32 w-32 h-32 bg-white/60 rounded-full blur-sm"></div>
-      </div>
-
-      {/* --- The Handle (Sun / Moon) --- */}
-      <div
-        className={`
-            absolute top-2 bottom-2 w-28 h-28 rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.3),inset_0_-4px_4px_rgba(0,0,0,0.1),inset_0_4px_8px_rgba(255,255,255,0.6)]
-            transition-all duration-700 ease-[cubic-bezier(0.68,-0.55,0.27,1.55)] z-20 overflow-hidden
-            ${isNight ? 'translate-x-[11.5rem]' : 'translate-x-2'}
-        `}
-      >
-        {/* Sun Background (Base Layer) */}
-        <div className="absolute inset-0 bg-[#FFD02D] transition-colors duration-500"></div>
-
-        {/* Moon Overlay (Eclipse Effect) */}
-        {/* This slides over the Sun as the handle moves. Starts hidden (translate-x-full) and slides in (translate-x-0) */}
-        <div 
+        <div
+            style={{ 
+                transform: `scale(${scale})`, 
+                transformOrigin: 'top left',
+                width: contentWidth, // Passed to style to ensure container sizing
+                height: contentHeight 
+            }}
             className={`
-                absolute inset-0 bg-[#D9DCE1] rounded-full transition-transform duration-700 ease-in-out
-                ${isNight ? 'translate-x-0' : 'translate-x-full'}
+                relative w-72 h-32 rounded-full cursor-pointer overflow-hidden transition-colors duration-700 ease-in-out 
+                shadow-[inset_0_4px_12px_rgba(0,0,0,0.3),inset_0_-2px_6px_rgba(255,255,255,0.2)]
+                border-4 box-content
+                ${isNight ? 'bg-[#1a1c29] border-slate-700/30' : 'bg-[#6EBFF7] border-slate-50/10'}
+                focus:outline-none focus:ring-4 focus:ring-blue-400/50
             `}
+            onClick={onToggle}
+            onKeyDown={handleKeyDown}
+            role="switch"
+            aria-checked={isNight}
+            aria-label="Toggle Dark Mode"
+            tabIndex={0}
         >
-            {/* Moon Craters */}
-            <div className="absolute top-4 right-6 w-6 h-6 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
-            <div className="absolute bottom-6 left-6 w-9 h-9 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
-            <div className="absolute bottom-8 right-8 w-4 h-4 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
+        {/* --- Background Elements --- */}
+        
+        {/* Background Gradients/Rings (Subtle depth) */}
+        <div className={`absolute inset-0 transition-opacity duration-700 ${isNight ? 'opacity-100' : 'opacity-0'}`}>
+            {/* Night Gradients */}
+            <div className="absolute top-[-50%] left-[20%] w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
+            <div className="absolute bottom-[-20%] right-[10%] w-48 h-48 rounded-full bg-blue-500/10 blur-2xl"></div>
+        </div>
+        <div className={`absolute inset-0 transition-opacity duration-700 ${isNight ? 'opacity-0' : 'opacity-100'}`}>
+            {/* Day Gradients */}
+            <div className="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-white/20 blur-2xl"></div>
+            <div className="absolute bottom-[-50%] left-[10%] w-56 h-56 rounded-full bg-blue-300/30 blur-2xl"></div>
         </div>
 
-        {/* Shine/Highlight on the sphere to make it look 3D (Glassy effect) */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 via-transparent to-black/5 opacity-100 pointer-events-none"></div>
-      </div>
+        {/* Generated Stars (Night Mode) */}
+        {stars.map((star) => (
+             <div 
+                key={star.id} 
+                className={`absolute text-white transition-all duration-700`}
+                style={{
+                    top: `${star.top}%`,
+                    left: `${star.left}%`,
+                    // Animate entry/exit
+                    opacity: isNight ? (star.type === 'dot' ? 0.7 : 1) : 0,
+                    transform: isNight ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0)',
+                    transitionDelay: `${star.delay * 0.1}s` // Stagger entrance
+                }}
+             >
+                {star.type === 'star' ? (
+                     <div 
+                        style={{ 
+                            animation: `twinkle ${star.duration}s infinite ease-in-out`,
+                            animationDelay: `${star.delay}s`
+                        }}
+                     >
+                         <StarIcon size={star.size} />
+                     </div>
+                ) : (
+                     <div 
+                        className="bg-white rounded-full shadow-[0_0_4px_white]" 
+                        style={{ 
+                            width: Math.max(2, star.size/5), 
+                            height: Math.max(2, star.size/5),
+                            opacity: 0.8,
+                            animation: `twinkle ${star.duration}s infinite ease-in-out`,
+                            animationDelay: `${star.delay}s`
+                        }} 
+                     />
+                )}
+             </div>
+        ))}
 
+
+        {/* Clouds (Day Mode) */}
+        <div className={`absolute inset-0 transition-all duration-700 ease-in-out ${isNight ? 'translate-y-24 opacity-0' : 'translate-y-0 opacity-100'}`}>
+            {/* Cloud 1 */}
+            <div className="absolute -bottom-6 right-0 w-32 h-32 bg-white/95 rounded-full mix-blend-normal"></div>
+            <div className="absolute -bottom-4 right-16 w-24 h-24 bg-white/90 rounded-full shadow-sm"></div>
+            {/* Cloud 2 */}
+            <div className="absolute -bottom-8 right-32 w-28 h-28 bg-white/85 rounded-full"></div>
+            <div className="absolute -bottom-2 right-[-10px] w-20 h-20 bg-white/80 rounded-full"></div>
+            {/* Cloud 3 - Left side filler */}
+            <div className="absolute -bottom-10 left-32 w-32 h-32 bg-white/60 rounded-full blur-sm"></div>
+        </div>
+
+        {/* --- The Handle Wrapper (Moves Left/Right) --- */}
+        <div
+            className={`
+                absolute top-2 bottom-2 w-28 h-28 z-20
+                transition-all duration-700 ease-[cubic-bezier(0.68,-0.55,0.27,1.55)]
+                ${/* 
+                   Translate Calculation:
+                   Container Width: 288px (w-72)
+                   Handle Width: 112px (w-28)
+                   Padding Start: 8px (0.5rem)
+                   Padding End: 8px
+                   
+                   Total Travel: 288 - 112 - 8 = 168px
+                   168px = 10.5rem
+                */ ''}
+                ${isNight ? 'translate-x-[10.5rem]' : 'translate-x-2'}
+            `}
+        >
+            
+            {/* Sun Rays (Behind the sphere) */}
+            {/* Only visible in day mode. We use a container that rotates. */}
+            <div className={`absolute inset-0 -z-10 transition-opacity duration-500 ${isNight ? 'opacity-0' : 'opacity-100'}`}>
+                <div className="w-full h-full relative animate-spin-slow">
+                    {[...Array(8)].map((_, i) => (
+                        <div
+                            key={i}
+                            className="absolute top-1/2 left-1/2 w-32 h-1 bg-white/40 rounded-full"
+                            style={{
+                                transform: `translate(-50%, -50%) rotate(${i * 45}deg) translateX(28px)`, // push out from center
+                            }}
+                        ></div>
+                    ))}
+                    {[...Array(8)].map((_, i) => (
+                        <div
+                            key={`short-${i}`}
+                            className="absolute top-1/2 left-1/2 w-20 h-1 bg-yellow-200/30 rounded-full"
+                            style={{
+                                transform: `translate(-50%, -50%) rotate(${i * 45 + 22.5}deg) translateX(24px)`,
+                            }}
+                        ></div>
+                    ))}
+                </div>
+            </div>
+
+            {/* The Sphere (Sun / Moon) - Contains the masking logic */}
+            <div className="relative w-full h-full rounded-full overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.3),inset_0_-4px_4px_rgba(0,0,0,0.1),inset_0_4px_8px_rgba(255,255,255,0.6)]">
+                
+                {/* Sun Background (Base Layer) */}
+                <div className="absolute inset-0 bg-[#FFD02D] transition-colors duration-500"></div>
+
+                {/* Moon Overlay (Eclipse Effect) */}
+                <div 
+                    className={`
+                        absolute inset-0 bg-[#D9DCE1] rounded-full transition-transform duration-700 ease-in-out
+                        ${isNight ? 'translate-x-0' : 'translate-x-full'}
+                    `}
+                >
+                    {/* Moon Craters */}
+                    <div className="absolute top-4 right-6 w-6 h-6 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
+                    <div className="absolute bottom-6 left-6 w-9 h-9 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
+                    <div className="absolute bottom-8 right-8 w-4 h-4 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
+                </div>
+
+                {/* Shine/Highlight on the sphere */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 via-transparent to-black/5 opacity-100 pointer-events-none"></div>
+            </div>
+        </div>
+
+        </div>
     </div>
   );
 };
