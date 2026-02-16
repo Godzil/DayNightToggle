@@ -43,7 +43,6 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({
     
     for (let i = 0; i < numStars; i++) {
         // Position stars on the left side (5% to 55%)
-        // With w-[328px] and handle (120px), we have ~60% of space on the left when active.
         const top = 15 + random() * 70; // 15% to 85% vertical
         const left = 5 + random() * 50; // 5% to 55% horizontal
         const size = 8 + random() * 12; // 8px to 20px
@@ -60,8 +59,6 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({
   }, [seed]);
 
   // Base dimensions of the component in pixels
-  // Content: w-[328px] (328px) x h-32 (128px)
-  // Border: 4px
   const contentWidth = 328;
   const contentHeight = 128;
   const borderWidth = 4;
@@ -72,8 +69,9 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({
   return (
     <div 
       style={{ width: totalWidth * scale, height: totalHeight * scale }}
-      className="relative flex-shrink-0"
+      className="relative flex-shrink-0 group"
     >
+        {/* Toggle Content */}
         <div
             style={{ 
                 transform: `scale(${scale})`, 
@@ -170,24 +168,13 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({
         <div
             className={`
                 absolute top-1 left-1 z-20
-                /* Handle Size: 120px (7.5rem) inside 128px container leaving 4px padding top/bottom */
                 w-[120px] h-[120px]
                 transition-all duration-700 ease-[cubic-bezier(0.68,-0.55,0.27,1.55)]
-                ${/* 
-                   Translate Calculation:
-                   Container: 328px
-                   Handle: 120px
-                   Start Pos (left-1): 4px
-                   End Pos (right-1): 4px from right
-                   
-                   Travel needed = Container(328) - Handle(120) - PaddingLeft(4) - PaddingRight(4) = 200px
-                */ ''}
-                ${isNight ? 'translate-x-[200px]' : 'translate-x-0'}
+                ${isNight ? 'translate-x-[196px]' : 'translate-x-0'}
             `}
         >
             
             {/* Sun Rays (Behind the sphere) */}
-            {/* Only visible in day mode. We use a container that rotates. */}
             <div className={`absolute inset-0 -z-10 transition-opacity duration-500 ${isNight ? 'opacity-0' : 'opacity-100'}`}>
                 <div className="w-full h-full relative animate-spin-slow">
                     {[...Array(8)].map((_, i) => (
@@ -211,30 +198,48 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({
                 </div>
             </div>
 
-            {/* The Sphere (Sun / Moon) - Contains the masking logic */}
+            {/* The Sphere (Sun / Moon) - Contains the icons */}
             <div className="relative w-full h-full rounded-full overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.3),inset_0_-4px_4px_rgba(0,0,0,0.1),inset_0_4px_8px_rgba(255,255,255,0.6)]">
                 
                 {/* Sun Background (Base Layer) */}
-                <div className="absolute inset-0 bg-[#FFD02D] transition-colors duration-500"></div>
+                <div className="absolute inset-0 bg-[#FFD02D] transition-colors duration-500 flex items-center justify-center">
+                    {/* Sun Icon */}
+                     <svg className={`w-16 h-16 text-yellow-600/30 transition-opacity duration-500 ${isNight ? 'opacity-0' : 'opacity-100'}`} viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/> 
+                        {/* A simple stylized face or pattern can go here, using a simpler circle for elegance */}
+                        <circle cx="12" cy="12" r="6" fill="currentColor" opacity="0.4" />
+                     </svg>
+                </div>
 
                 {/* Moon Overlay (Eclipse Effect) */}
                 <div 
                     className={`
-                        absolute inset-0 bg-[#D9DCE1] rounded-full transition-transform duration-700 ease-in-out
+                        absolute inset-0 bg-[#D9DCE1] rounded-full transition-transform duration-700 ease-in-out flex items-center justify-center
                         ${isNight ? 'translate-x-0' : 'translate-x-full'}
                     `}
                 >
-                    {/* Moon Craters */}
-                    <div className="absolute top-4 right-6 w-6 h-6 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
-                    <div className="absolute bottom-6 left-6 w-9 h-9 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
-                    <div className="absolute bottom-8 right-8 w-4 h-4 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
+                    {/* Moon Icon / Craters SVG */}
+                    <svg className="w-full h-full text-[#B0B5BB]" viewBox="0 0 100 100" fill="currentColor">
+                         {/* Craters embedded as SVG paths for cleaner look */}
+                         <circle cx="65" cy="25" r="6" className="shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)] opacity-60" />
+                         <circle cx="35" cy="70" r="10" className="shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)] opacity-60" />
+                         <circle cx="75" cy="75" r="4" className="shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)] opacity-60" />
+                         {/* Crescent Moon Icon inside the moon sphere (subtle) */}
+                         <path d="M50 20C40 20 35 30 35 30C35 30 55 35 55 60C55 80 40 85 40 85C55 90 75 80 80 60C85 40 70 25 50 20Z" fill="white" fillOpacity="0.1" />
+                    </svg>
                 </div>
 
                 {/* Shine/Highlight on the sphere */}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 via-transparent to-black/5 opacity-100 pointer-events-none"></div>
             </div>
         </div>
+        </div>
 
+        {/* Accessibility Tooltip - Now properly positioned below */}
+        <div 
+          className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white text-xs px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 backdrop-blur-sm"
+        >
+          {isNight ? "Switch to Day" : "Switch to Night"}
         </div>
     </div>
   );
