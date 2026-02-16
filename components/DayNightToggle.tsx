@@ -39,19 +39,22 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({
   const stars = useMemo(() => {
     const random = getRandom(seed + 12345); // offset seed
     const generatedStars = [];
-    const numStars = 4 + Math.floor(random() * 4); // 4 to 7 stars
+    const numStars = 5 + Math.floor(random() * 4); // 5 to 8 stars
     
     for (let i = 0; i < numStars; i++) {
         // Position stars on the left side (5% to 55%)
         // With w-[328px] and handle (120px), we have ~60% of space on the left when active.
         const top = 15 + random() * 70; // 15% to 85% vertical
         const left = 5 + random() * 50; // 5% to 55% horizontal
-        const size = 10 + random() * 10; // 10px to 20px
+        const size = 8 + random() * 12; // 8px to 20px
         const delay = random() * 3; // 0s to 3s delay
         const duration = 2 + random() * 3; // 2s to 5s duration
         const type = random() > 0.6 ? 'dot' : 'star'; // 40% dots, 60% stars
-        
-        generatedStars.push({ id: i, top, left, size, delay, duration, type });
+        // Drift parameters
+        const driftDelay = random() * 5;
+        const driftDuration = 6 + random() * 6;
+
+        generatedStars.push({ id: i, top, left, size, delay, duration, type, driftDelay, driftDuration });
     }
     return generatedStars;
   }, [seed]);
@@ -121,27 +124,32 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({
                     transitionDelay: `${star.delay * 0.1}s` // Stagger entrance
                 }}
              >
-                {star.type === 'star' ? (
-                     <div 
-                        style={{ 
-                            animation: `twinkle ${star.duration}s infinite ease-in-out`,
-                            animationDelay: `${star.delay}s`
-                        }}
-                     >
-                         <StarIcon size={star.size} />
-                     </div>
-                ) : (
-                     <div 
-                        className="bg-white rounded-full shadow-[0_0_4px_white]" 
-                        style={{ 
-                            width: Math.max(2, star.size/5), 
-                            height: Math.max(2, star.size/5),
-                            opacity: 0.8,
-                            animation: `twinkle ${star.duration}s infinite ease-in-out`,
-                            animationDelay: `${star.delay}s`
-                        }} 
-                     />
-                )}
+                <div style={{
+                   animation: `float ${star.driftDuration}s ease-in-out infinite`,
+                   animationDelay: `${star.driftDelay}s`
+                }}>
+                  {star.type === 'star' ? (
+                      <div 
+                          style={{ 
+                              animation: `twinkle ${star.duration}s infinite ease-in-out`,
+                              animationDelay: `${star.delay}s`
+                          }}
+                      >
+                          <StarIcon size={star.size} />
+                      </div>
+                  ) : (
+                      <div 
+                          className="bg-white rounded-full shadow-[0_0_4px_white]" 
+                          style={{ 
+                              width: Math.max(2, star.size/5), 
+                              height: Math.max(2, star.size/5),
+                              opacity: 0.8,
+                              animation: `twinkle ${star.duration}s infinite ease-in-out`,
+                              animationDelay: `${star.delay}s`
+                          }} 
+                      />
+                  )}
+                </div>
              </div>
         ))}
 
