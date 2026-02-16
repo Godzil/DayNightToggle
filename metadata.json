@@ -1,0 +1,5 @@
+{
+  "name": "Day/Night Toggle",
+  "description": "An animated day/night toggle switch with eclipse transition effects using Tailwind CSS and React.",
+  "requestFramePermissions": []
+}
