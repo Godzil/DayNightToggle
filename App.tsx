@@ -18,7 +18,14 @@ const App: React.FC = () => {
         </h1>
         
         {/* Default Scale (1.0) */}
-        <DayNightToggle isNight={isNight} onToggle={toggleTheme} scale={1} seed={1} />
+        <DayNightToggle 
+            isNight={isNight} 
+            onToggle={toggleTheme} 
+            scale={1} 
+            seed={1} 
+            dayBgColor={theme.toggleDay}
+            nightBgColor={theme.toggleNight}
+        />
         
         <p className={`font-medium text-sm tracking-wide transition-colors duration-700 ${isNight ? 'text-slate-400' : 'text-slate-400'}`}>
           Main Control
@@ -36,16 +43,39 @@ const App: React.FC = () => {
                <div className="flex flex-col items-center gap-2">
                    <DayNightToggle isNight={isNight} onToggle={toggleTheme} scale={1.0} seed={1} />
                    <span className="text-xs text-slate-500 uppercase tracking-wider">1.0x (Original)</span>
+                   <DayNightToggle 
+                        isNight={isNight} 
+                        onToggle={toggleTheme} 
+                        scale={1.0} 
+                        seed={1} 
+                        dayBgColor={theme.toggleDay}
+                        nightBgColor={theme.toggleNight}
+                   />
                </div>
                
                <div className="flex flex-row flex-wrap items-end justify-center gap-8 w-full">
                   <div className="flex flex-col items-center gap-2">
                       <DayNightToggle isNight={isNight} onToggle={toggleTheme} scale={0.8} seed={1} />
                       <span className="text-xs text-slate-500 uppercase tracking-wider">0.8x</span>
+                      <DayNightToggle 
+                        isNight={isNight} 
+                        onToggle={toggleTheme} 
+                        scale={0.8} 
+                        seed={1} 
+                        dayBgColor={theme.toggleDay}
+                        nightBgColor={theme.toggleNight}
+                      />
                   </div>
                   <div className="flex flex-col items-center gap-2">
                       <DayNightToggle isNight={isNight} onToggle={toggleTheme} scale={0.6} seed={1} />
                       <span className="text-xs text-slate-500 uppercase tracking-wider">0.6x</span>
+                        onToggle={toggleTheme} 
+                        scale={0.6} 
+                        seed={1} 
+                        dayBgColor={theme.toggleDay}
+                        nightBgColor={theme.toggleNight}
+                      />
+                      <span className={`text-xs uppercase tracking-wider ${isNight ? 'text-slate-400' : 'text-slate-500'}`}>0.6x</span>
                   </div>
                </div>
 
@@ -53,10 +83,25 @@ const App: React.FC = () => {
                   <div className="flex flex-col items-center gap-2">
                       <DayNightToggle isNight={isNight} onToggle={toggleTheme} scale={0.4} seed={1} />
                       <span className="text-xs text-slate-500 uppercase tracking-wider">0.4x</span>
+                        isNight={isNight} 
+                        onToggle={toggleTheme} 
+                        scale={0.4} 
+                        seed={1} 
+                        dayBgColor={theme.toggleDay}
+                        nightBgColor={theme.toggleNight}
+                      />
+                      <span className={`text-xs uppercase tracking-wider ${isNight ? 'text-slate-400' : 'text-slate-500'}`}>0.4x</span>
                   </div>
                   <div className="flex flex-col items-center gap-2">
                       <DayNightToggle isNight={isNight} onToggle={toggleTheme} scale={0.25} seed={1} />
                       <span className="text-xs text-slate-500 uppercase tracking-wider">0.25x</span>
+                        onToggle={toggleTheme} 
+                        scale={0.25} 
+                        seed={1} 
+                        dayBgColor={theme.toggleDay}
+                        nightBgColor={theme.toggleNight}
+                      />
+                      <span className={`text-xs uppercase tracking-wider ${isNight ? 'text-slate-400' : 'text-slate-500'}`}>0.25x</span>
                   </div>
                </div>
 
@@ -73,14 +118,37 @@ const App: React.FC = () => {
                <div className="flex flex-col items-center gap-2">
                    <DayNightToggle isNight={isNight} onToggle={toggleTheme} scale={0.6} seed={123} />
                    <span className="text-xs text-slate-500 uppercase tracking-wider">Seed 123</span>
+                   <DayNightToggle 
+                        isNight={isNight} 
+                        onToggle={toggleTheme} 
+                        scale={0.6} 
+                        seed={123} 
+                        dayBgColor={theme.toggleDay}
+                        nightBgColor={theme.toggleNight}
+                   />
                </div>
                <div className="flex flex-col items-center gap-2">
                    <DayNightToggle isNight={isNight} onToggle={toggleTheme} scale={0.6} seed={999} />
                    <span className="text-xs text-slate-500 uppercase tracking-wider">Seed 999</span>
+                        isNight={isNight} 
+                        onToggle={toggleTheme} 
+                        scale={0.6} 
+                        seed={999} 
+                        dayBgColor={theme.toggleDay}
+                        nightBgColor={theme.toggleNight}
+                   />
+                   <span className={`text-xs uppercase tracking-wider ${isNight ? 'text-slate-400' : 'text-slate-500'}`}>Seed 999</span>
                </div>
                <div className="flex flex-col items-center gap-2">
                    <DayNightToggle isNight={isNight} onToggle={toggleTheme} scale={0.6} seed={42} />
                    <span className="text-xs text-slate-500 uppercase tracking-wider">Seed 42</span>
+                        onToggle={toggleTheme} 
+                        scale={0.6} 
+                        seed={42} 
+                        dayBgColor={theme.toggleDay}
+                        nightBgColor={theme.toggleNight}
+                   />
+                   <span className={`text-xs uppercase tracking-wider ${isNight ? 'text-slate-400' : 'text-slate-500'}`}>Seed 42</span>
                </div>
            </div>
         </div>

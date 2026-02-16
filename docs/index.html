@@ -33,6 +33,11 @@
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
       }
+      /* Floating animation for stars */
+      @keyframes float {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(-4px, 4px); }
+      }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -40,7 +45,7 @@
 
     <!-- React Application Logic -->
     <script type="text/babel" data-presets="react,typescript">
-        const { useState, useMemo } = React;
+        const { useState, useMemo, useCallback } = React;
 
         // --- Utils: Random Generator ---
         const getRandom = (seed) => {
@@ -67,12 +72,69 @@
         );
 
         // --- Day/Night Toggle Component (Updated Logic) ---
-        const DayNightToggle = ({ isNight, onToggle, scale = 1, seed = 0 }) => {
+        const DayNightToggle = ({ 
+            isNight, 
+            onToggle, 
+            scale = 1, 
+            seed = 0,
+            dayBgColor = '#6EBFF7',
+            nightBgColor = '#1a1c29'
+        }) => {
             
+            // Audio Effect
+            const playSound = useCallback(() => {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                
+                try {
+                const ctx = new AudioContext();
+                const now = ctx.currentTime;
+                
+                // Click Sound (Short burst)
+                const oscClick = ctx.createOscillator();
+                const gainClick = ctx.createGain();
+                oscClick.connect(gainClick);
+                gainClick.connect(ctx.destination);
+                
+                oscClick.type = 'triangle';
+                oscClick.frequency.setValueAtTime(isNight ? 600 : 800, now);
+                oscClick.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+                
+                gainClick.gain.setValueAtTime(0.05, now);
+                gainClick.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                
+                oscClick.start(now);
+                oscClick.stop(now + 0.1);
+
+                // Chime Sound (Gentle transition)
+                const oscChime = ctx.createOscillator();
+                const gainChime = ctx.createGain();
+                oscChime.connect(gainChime);
+                gainChime.connect(ctx.destination);
+
+                oscChime.type = 'sine';
+                oscChime.frequency.setValueAtTime(isNight ? 400 : 600, now);
+                
+                gainChime.gain.setValueAtTime(0, now);
+                gainChime.gain.linearRampToValueAtTime(0.05, now + 0.05);
+                gainChime.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+                oscChime.start(now);
+                oscChime.stop(now + 0.6);
+                } catch (e) {
+                // Fallback or silence if audio not supported/blocked
+                }
+            }, [isNight]);
+
+            const handleInteraction = () => {
+                playSound();
+                onToggle();
+            };
+
             const handleKeyDown = (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    onToggle();
+                    handleInteraction();
                 }
             };
 
@@ -80,17 +142,20 @@
             const stars = useMemo(() => {
                 const random = getRandom(seed + 12345);
                 const generatedStars = [];
-                const numStars = 4 + Math.floor(random() * 4); // 4 to 7 stars
+                const numStars = 5 + Math.floor(random() * 4); // 5 to 8 stars
                 
                 for (let i = 0; i < numStars; i++) {
                     const top = 15 + random() * 70; 
-                    const left = 5 + random() * 50; // Constrained to left side
-                    const size = 10 + random() * 10;
+                    const left = 5 + random() * 50; 
+                    const size = 8 + random() * 12;
                     const delay = random() * 3;
                     const duration = 2 + random() * 3;
                     const type = random() > 0.6 ? 'dot' : 'star';
+                    // Drift parameters
+                    const driftDelay = random() * 5;
+                    const driftDuration = 6 + random() * 6;
                     
-                    generatedStars.push({ id: i, top, left, size, delay, duration, type });
+                    generatedStars.push({ id: i, top, left, size, delay, duration, type, driftDelay, driftDuration });
                 }
                 return generatedStars;
             }, [seed]);
@@ -105,23 +170,24 @@
             return (
                 <div 
                   style={{ width: totalWidth * scale, height: totalHeight * scale }}
-                  className="relative flex-shrink-0"
+                  className="relative flex-shrink-0 group"
                 >
                     <div
                         style={{ 
                             transform: `scale(${scale})`, 
                             transformOrigin: 'top left',
                             width: contentWidth, 
-                            height: contentHeight 
+                            height: contentHeight,
+                            backgroundColor: isNight ? nightBgColor : dayBgColor
                         }}
                         className={`
                             relative w-[328px] h-32 rounded-full cursor-pointer overflow-hidden transition-colors duration-700 ease-in-out 
                             shadow-[inset_0_4px_12px_rgba(0,0,0,0.3),inset_0_-2px_6px_rgba(255,255,255,0.2)]
                             border-4 box-content
-                            ${isNight ? 'bg-[#1a1c29] border-slate-700/30' : 'bg-[#6EBFF7] border-slate-50/10'}
+                            ${isNight ? 'border-slate-700/30' : 'border-slate-50/10'}
                             focus:outline-none focus:ring-4 focus:ring-blue-400/50
                         `}
-                        onClick={onToggle}
+                        onClick={handleInteraction}
                         onKeyDown={handleKeyDown}
                         role="switch"
                         aria-checked={isNight}
@@ -151,22 +217,27 @@
                                 transitionDelay: `${star.delay * 0.1}s`
                             }}
                         >
-                            {star.type === 'star' ? (
-                                <div style={{ animation: `twinkle ${star.duration}s infinite ease-in-out`, animationDelay: `${star.delay}s` }}>
-                                    <StarIcon size={star.size} />
-                                </div>
-                            ) : (
-                                <div 
-                                    className="bg-white rounded-full shadow-[0_0_4px_white]" 
-                                    style={{ 
-                                        width: Math.max(2, star.size/5), 
-                                        height: Math.max(2, star.size/5),
-                                        opacity: 0.8,
-                                        animation: `twinkle ${star.duration}s infinite ease-in-out`,
-                                        animationDelay: `${star.delay}s`
-                                    }} 
-                                />
-                            )}
+                            <div style={{
+                                animation: `float ${star.driftDuration}s ease-in-out infinite`,
+                                animationDelay: `${star.driftDelay}s`
+                             }}>
+                                {star.type === 'star' ? (
+                                    <div style={{ animation: `twinkle ${star.duration}s infinite ease-in-out`, animationDelay: `${star.delay}s` }}>
+                                        <StarIcon size={star.size} />
+                                    </div>
+                                ) : (
+                                    <div 
+                                        className="bg-white rounded-full shadow-[0_0_4px_white]" 
+                                        style={{ 
+                                            width: Math.max(2, star.size/5), 
+                                            height: Math.max(2, star.size/5),
+                                            opacity: 0.8,
+                                            animation: `twinkle ${star.duration}s infinite ease-in-out`,
+                                            animationDelay: `${star.delay}s`
+                                        }} 
+                                    />
+                                )}
+                            </div>
                         </div>
                     ))}
 
@@ -184,7 +255,7 @@
                         className={`
                             absolute top-1 left-1 z-20 w-[120px] h-[120px]
                             transition-all duration-700 ease-[cubic-bezier(0.68,-0.55,0.27,1.55)]
-                            ${isNight ? 'translate-x-[200px]' : 'translate-x-0'}
+                            ${isNight ? 'translate-x-[204px]' : 'translate-x-0'}
                         `}
                     >
                         {/* Sun Rays */}
@@ -201,16 +272,37 @@
 
                         {/* Sphere */}
                         <div className="relative w-full h-full rounded-full overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.3),inset_0_-4px_4px_rgba(0,0,0,0.1),inset_0_4px_8px_rgba(255,255,255,0.6)]">
-                            <div className="absolute inset-0 bg-[#FFD02D] transition-colors duration-500"></div>
-                            <div className={`absolute inset-0 bg-[#D9DCE1] rounded-full transition-transform duration-700 ease-in-out ${isNight ? 'translate-x-0' : 'translate-x-full'}`}>
-                                <div className="absolute top-4 right-6 w-6 h-6 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
-                                <div className="absolute bottom-6 left-6 w-9 h-9 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
-                                <div className="absolute bottom-8 right-8 w-4 h-4 bg-[#B0B5BB] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
+                            {/* Sun Background */}
+                            <div className="absolute inset-0 bg-[#FFD02D] transition-colors duration-500 flex items-center justify-center">
+                                {/* Sun Icon */}
+                                <svg className={`w-16 h-16 text-yellow-600/30 transition-opacity duration-500 ${isNight ? 'opacity-0' : 'opacity-100'}`} viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/> 
+                                    <circle cx="12" cy="12" r="6" fill="currentColor" opacity="0.4" />
+                                </svg>
                             </div>
+
+                            {/* Moon Overlay */}
+                            <div className={`absolute inset-0 bg-[#D9DCE1] rounded-full transition-transform duration-700 ease-in-out flex items-center justify-center ${isNight ? 'translate-x-0' : 'translate-x-full'}`}>
+                                {/* Moon Icon */}
+                                <svg className="w-full h-full text-[#B0B5BB]" viewBox="0 0 100 100" fill="currentColor">
+                                    <circle cx="65" cy="25" r="6" className="shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)] opacity-60" />
+                                    <circle cx="35" cy="70" r="10" className="shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)] opacity-60" />
+                                    <circle cx="75" cy="75" r="4" className="shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)] opacity-60" />
+                                    <path d="M50 20C40 20 35 30 35 30C35 30 55 35 55 60C55 80 40 85 40 85C55 90 75 80 80 60C85 40 70 25 50 20Z" fill="white" fillOpacity="0.1" />
+                                </svg>
+                            </div>
+                            
+                            {/* Shine */}
                             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 via-transparent to-black/5 opacity-100 pointer-events-none"></div>
                         </div>
                     </div>
+                    </div>
 
+                    {/* Tooltip */}
+                    <div 
+                        className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white text-xs px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 backdrop-blur-sm"
+                    >
+                        {isNight ? "Switch to Day" : "Switch to Night"}
                     </div>
                 </div>
             );

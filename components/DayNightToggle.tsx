@@ -5,6 +5,8 @@ interface DayNightToggleProps {
   onToggle: () => void;
   scale?: number;
   seed?: number;
+  dayBgColor?: string;
+  nightBgColor?: string;
 }
 
 // Simple Linear Congruential Generator for deterministic randomness
@@ -17,7 +19,14 @@ const getRandom = (seed: number) => {
   };
 };
 
-const DayNightToggle: React.FC<DayNightToggleProps> = ({ isNight, onToggle, scale = 1, seed = 0 }) => {
+const DayNightToggle: React.FC<DayNightToggleProps> = ({ 
+  isNight, 
+  onToggle, 
+  scale = 1, 
+  seed = 0,
+  dayBgColor = '#6EBFF7',
+  nightBgColor = '#1a1c29'
+}) => {
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -67,13 +76,14 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({ isNight, onToggle, scal
                 transform: `scale(${scale})`, 
                 transformOrigin: 'top left',
                 width: contentWidth, // Passed to style to ensure container sizing
-                height: contentHeight 
+                height: contentHeight,
+                backgroundColor: isNight ? nightBgColor : dayBgColor
             }}
             className={`
                 relative w-[328px] h-32 rounded-full cursor-pointer overflow-hidden transition-colors duration-700 ease-in-out 
                 shadow-[inset_0_4px_12px_rgba(0,0,0,0.3),inset_0_-2px_6px_rgba(255,255,255,0.2)]
                 border-4 box-content
-                ${isNight ? 'bg-[#1a1c29] border-slate-700/30' : 'bg-[#6EBFF7] border-slate-50/10'}
+                ${isNight ? 'border-slate-700/30' : 'border-slate-50/10'}
                 focus:outline-none focus:ring-4 focus:ring-blue-400/50
             `}
             onClick={onToggle}
