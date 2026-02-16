@@ -33,11 +33,11 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({ isNight, onToggle, scal
     const numStars = 4 + Math.floor(random() * 4); // 4 to 7 stars
     
     for (let i = 0; i < numStars; i++) {
-        // Position stars primarily on the left side (5% to 55%) so they are visible when switch is in night mode
-        // With the tighter width (w-72), we have less space, so we constrain left slightly more.
-        const top = 15 + random() * 60; // 15% to 75% vertical
-        const left = 8 + random() * 45; // 8% to 53% horizontal
-        const size = 10 + random() * 12; // 10px to 22px
+        // Position stars on the left side (5% to 55%)
+        // With w-[328px] and handle (120px), we have ~60% of space on the left when active.
+        const top = 15 + random() * 70; // 15% to 85% vertical
+        const left = 5 + random() * 50; // 5% to 55% horizontal
+        const size = 10 + random() * 10; // 10px to 20px
         const delay = random() * 3; // 0s to 3s delay
         const duration = 2 + random() * 3; // 2s to 5s duration
         const type = random() > 0.6 ? 'dot' : 'star'; // 40% dots, 60% stars
@@ -48,9 +48,9 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({ isNight, onToggle, scal
   }, [seed]);
 
   // Base dimensions of the component in pixels
-  // Content: w-72 (288px) x h-32 (128px)
+  // Content: w-[328px] (328px) x h-32 (128px)
   // Border: 4px
-  const contentWidth = 288;
+  const contentWidth = 328;
   const contentHeight = 128;
   const borderWidth = 4;
   
@@ -70,7 +70,7 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({ isNight, onToggle, scal
                 height: contentHeight 
             }}
             className={`
-                relative w-72 h-32 rounded-full cursor-pointer overflow-hidden transition-colors duration-700 ease-in-out 
+                relative w-[328px] h-32 rounded-full cursor-pointer overflow-hidden transition-colors duration-700 ease-in-out 
                 shadow-[inset_0_4px_12px_rgba(0,0,0,0.3),inset_0_-2px_6px_rgba(255,255,255,0.2)]
                 border-4 box-content
                 ${isNight ? 'bg-[#1a1c29] border-slate-700/30' : 'bg-[#6EBFF7] border-slate-50/10'}
@@ -151,19 +151,20 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({ isNight, onToggle, scal
         {/* --- The Handle Wrapper (Moves Left/Right) --- */}
         <div
             className={`
-                absolute top-2 bottom-2 w-28 h-28 z-20
+                absolute top-1 left-1 z-20
+                /* Handle Size: 120px (7.5rem) inside 128px container leaving 4px padding top/bottom */
+                w-[120px] h-[120px]
                 transition-all duration-700 ease-[cubic-bezier(0.68,-0.55,0.27,1.55)]
                 ${/* 
                    Translate Calculation:
-                   Container Width: 288px (w-72)
-                   Handle Width: 112px (w-28)
-                   Padding Start: 8px (0.5rem)
-                   Padding End: 8px
+                   Container: 328px
+                   Handle: 120px
+                   Start Pos (left-1): 4px
+                   End Pos (right-1): 4px from right
                    
-                   Total Travel: 288 - 112 - 8 = 168px
-                   168px = 10.5rem
+                   Travel needed = Container(328) - Handle(120) - PaddingLeft(4) - PaddingRight(4) = 200px
                 */ ''}
-                ${isNight ? 'translate-x-[10.5rem]' : 'translate-x-2'}
+                ${isNight ? 'translate-x-[200px]' : 'translate-x-0'}
             `}
         >
             

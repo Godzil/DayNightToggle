@@ -41,8 +41,8 @@ npm start
 
 To publish the demo page to GitHub Pages:
 
-1. The `pages/` folder contains a standalone `index.html`.
-2. Configure GitHub Pages to serve from the `/pages` folder or root depending on your repository structure.
+1. The `docs/` folder contains a standalone `index.html`.
+2. Configure GitHub Pages to serve from the `/docs` folder or root depending on your repository structure.
 
 ## Technologies
 
