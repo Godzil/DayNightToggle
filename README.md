@@ -2,7 +2,7 @@
 
 A beautiful, animated, and scalable Day/Night toggle switch component built with **React**, **Tailwind CSS**, and **TypeScript**.
 
-![Demo Preview](https://via.placeholder.com/800x400?text=Day+Night+Toggle+Preview)
+![Demo Preview](https://godzil.github.io/DayNightToggle/)
 
 ## Features
 
