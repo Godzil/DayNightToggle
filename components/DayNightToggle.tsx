@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 
 interface DayNightToggleProps {
   isNight: boolean;
@@ -28,10 +28,60 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({
   nightBgColor = '#1a1c29'
 }) => {
   
+  // Audio Effect
+  const playSound = useCallback(() => {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    
+    try {
+      const ctx = new AudioContext();
+      const now = ctx.currentTime;
+      
+      // Click Sound (Short burst)
+      const oscClick = ctx.createOscillator();
+      const gainClick = ctx.createGain();
+      oscClick.connect(gainClick);
+      gainClick.connect(ctx.destination);
+      
+      oscClick.type = 'triangle';
+      oscClick.frequency.setValueAtTime(isNight ? 600 : 800, now);
+      oscClick.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+      
+      gainClick.gain.setValueAtTime(0.05, now);
+      gainClick.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      
+      oscClick.start(now);
+      oscClick.stop(now + 0.1);
+
+      // Chime Sound (Gentle transition)
+      const oscChime = ctx.createOscillator();
+      const gainChime = ctx.createGain();
+      oscChime.connect(gainChime);
+      gainChime.connect(ctx.destination);
+
+      oscChime.type = 'sine';
+      oscChime.frequency.setValueAtTime(isNight ? 400 : 600, now);
+      
+      gainChime.gain.setValueAtTime(0, now);
+      gainChime.gain.linearRampToValueAtTime(0.05, now + 0.05);
+      gainChime.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+      oscChime.start(now);
+      oscChime.stop(now + 0.6);
+    } catch (e) {
+      // Fallback or silence if audio not supported/blocked
+    }
+  }, [isNight]);
+
+  const handleInteraction = () => {
+    playSound();
+    onToggle();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      onToggle();
+      handleInteraction();
     }
   };
 
@@ -87,7 +137,7 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({
                 ${isNight ? 'border-slate-700/30' : 'border-slate-50/10'}
                 focus:outline-none focus:ring-4 focus:ring-blue-400/50
             `}
-            onClick={onToggle}
+            onClick={handleInteraction}
             onKeyDown={handleKeyDown}
             role="switch"
             aria-checked={isNight}
